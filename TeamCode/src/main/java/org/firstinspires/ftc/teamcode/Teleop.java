@@ -40,8 +40,10 @@ import com.qualcomm.robotcore.util.Range;
 
 public class Teleop extends LinearOpMode {
     public static final double ARM_POWER    =  0.4;
-    public static final double CLAW_OPEN_POSITION    =  0.5;
-    public static final double CLAW_CLOSED_POSITION    =  0.2;
+
+    public static final double WRIST_POWER    =  0.3;
+    public static final double CLAW_OPEN_POSITION    =  0;
+    public static final double CLAW_CLOSED_POSITION    =  1;
 
 
     @Override
@@ -52,14 +54,16 @@ public class Teleop extends LinearOpMode {
         DcMotor rightFront  = hardwareMap.get(DcMotor.class, "rightf");
         DcMotor leftBack  = hardwareMap.get(DcMotor.class, "leftb");
         DcMotor rightBack  = hardwareMap.get(DcMotor.class, "rightb");
-        Servo claw = hardwareMap.get(Servo.class, "claw");
+        Servo leftClaw = hardwareMap.get(Servo.class, "leftclaw");
+        Servo rightClaw = hardwareMap.get(Servo.class, "rightclaw");
         DcMotor arm  = hardwareMap.get(DcMotor.class, "arm");
+        DcMotor wrist = hardwareMap.get(DcMotor.class, "wrist");
 
        //one side is reversed
-        leftFront.setDirection(DcMotor.Direction.FORWARD);
-        leftBack.setDirection(DcMotor.Direction.FORWARD);
-        rightFront.setDirection(DcMotor.Direction.REVERSE);
-        rightBack.setDirection(DcMotor.Direction.REVERSE);
+        leftFront.setDirection(DcMotor.Direction.REVERSE);
+        leftBack.setDirection(DcMotor.Direction.REVERSE);
+        rightFront.setDirection(DcMotor.Direction.FORWARD);
+        rightBack.setDirection(DcMotor.Direction.FORWARD);
 
 
         // Send telemetry message to signify robot waiting;
@@ -88,6 +92,7 @@ public class Teleop extends LinearOpMode {
             rightFront.setPower(frontRightPower);
             rightBack.setPower(backRightPower);
 
+            //brakes
             leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -95,20 +100,35 @@ public class Teleop extends LinearOpMode {
 
 
             //moves arm up and down
-            if (gamepad2.y) {
+            if (gamepad1.dpad_up) {
                 arm.setPower(ARM_POWER);
-            } else if (gamepad2.x) {
+            } else if (gamepad1.dpad_down) {
                 arm.setPower(-ARM_POWER);
             } else {
                 arm.setPower(0.0);
             }
 
+            //moves wrist up and down
+            if (gamepad1.right_trigger > 0.1) {
+                wrist.setPower(WRIST_POWER);
+            } else if (gamepad1.left_trigger > 0.1) {
+                wrist.setPower(-WRIST_POWER);
+            } else {
+                wrist.setPower(0.0);
+            }
 
-            //moves claw open and closed, open and closed claw values to be changed
-            if (gamepad2.a) {
-                claw.setPosition(CLAW_OPEN_POSITION);
-            } else if (gamepad2.b) {
-                claw.setPosition(CLAW_CLOSED_POSITION);
+            //moves claws open and closed, open and closed claw values to be changed, servo to be programmed
+            if (gamepad2.a) { //open
+                leftClaw.setPosition(1);
+                rightClaw.setPosition(0);
+            } else if (gamepad2.b) { //closed
+                leftClaw.setPosition(0);
+                rightClaw.setPosition(1);
+            }
+
+            //5 second timer for hang
+            if (gamepad2.x) {
+                sleep(5000);
             }
 
 
