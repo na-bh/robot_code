@@ -100,18 +100,18 @@ public class Teleop extends LinearOpMode {
 
 
             //moves arm up and down
-            if (gamepad1.dpad_up) {
+            if (gamepad2.dpad_up) {
                 arm.setPower(ARM_POWER);
-            } else if (gamepad1.dpad_down) {
+            } else if (gamepad2.dpad_down) {
                 arm.setPower(-ARM_POWER);
             } else {
                 arm.setPower(0.0);
             }
 
             //moves wrist up and down
-            if (gamepad1.right_trigger > 0.1) {
+            if (gamepad2.right_trigger > 0.1) {
                 wrist.setPower(WRIST_POWER);
-            } else if (gamepad1.left_trigger > 0.1) {
+            } else if (gamepad2.left_trigger > 0.1) {
                 wrist.setPower(-WRIST_POWER);
             } else {
                 wrist.setPower(0.0);
@@ -128,6 +128,7 @@ public class Teleop extends LinearOpMode {
 
             //5 second timer for hang
             if (gamepad2.x) {
+                arm.setPower(ARM_POWER);
                 sleep(5000);
             }
 
