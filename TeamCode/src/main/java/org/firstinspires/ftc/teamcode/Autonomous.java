@@ -91,6 +91,13 @@ public class Autonomous extends LinearOpMode {
 
         // Step through each leg of the path, ensuring that the Auto mode has not been stopped along the way
 
+        arm.setPower(0.4);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 1.5)) {
+            telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        arm.setPower(0);
         // Step 1:  Drive forward for 2 seconds
         leftFront.setPower(FORWARD_SPEED);
         leftBack.setPower(FORWARD_SPEED);
@@ -98,7 +105,7 @@ public class Autonomous extends LinearOpMode {
         rightBack.setPower(FORWARD_SPEED);
 
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 2.0)) {
+        while (opModeIsActive() && (runtime.seconds() < 1.7)) {
             telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
@@ -109,7 +116,7 @@ public class Autonomous extends LinearOpMode {
         rightFront.setPower(-FORWARD_SPEED);
         rightBack.setPower(-FORWARD_SPEED);
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 0.25)) {
+        while (opModeIsActive() && (runtime.seconds() < 0.38)) {
             telemetry.addData("Path", "Leg 3: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
@@ -124,7 +131,14 @@ public class Autonomous extends LinearOpMode {
         leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
+        //  put arm down
+        arm.setPower(-0.2);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 0.8)) {
+            telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+        arm.setPower(0);
         telemetry.addData("Path", "Complete");
         telemetry.update();
         //sleep(1000);
