@@ -41,7 +41,7 @@ import com.qualcomm.robotcore.util.Range;
 public class Teleop extends LinearOpMode {
     public static final double ARM_POWER    =  0.4;
 
-    public static final double WRIST_POWER    =  0.3;
+    public static final double WRIST_POWER    =  0.4;
     public static final double CLAW_OPEN_POSITION    =  0;
     public static final double CLAW_CLOSED_POSITION    =  1;
 
@@ -64,6 +64,9 @@ public class Teleop extends LinearOpMode {
         leftBack.setDirection(DcMotor.Direction.REVERSE);
         rightFront.setDirection(DcMotor.Direction.FORWARD);
         rightBack.setDirection(DcMotor.Direction.FORWARD);
+
+        wrist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
 
         // Send telemetry message to signify robot waiting;
@@ -108,14 +111,25 @@ public class Teleop extends LinearOpMode {
                 arm.setPower(0.0);
             }
 
+
+
+
             //moves wrist up and down
             if (gamepad2.right_trigger > 0.1) {
-                wrist.setPower(WRIST_POWER);
+                wrist.setTargetPosition(500);
+                wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                wrist.setPower(0.5);
             } else if (gamepad2.left_trigger > 0.1) {
-                wrist.setPower(-WRIST_POWER);
+                wrist.setTargetPosition(-500);
+                wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                wrist.setPower(0.5);
             } else {
                 wrist.setPower(0.0);
             }
+
+
+            wrist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
             //moves claws open and closed, open and closed claw values to be changed, servo to be programmed
             if (gamepad2.a) { //open
@@ -126,10 +140,16 @@ public class Teleop extends LinearOpMode {
                 rightClaw.setPosition(1);
             }
 
+
             //5 second timer for hang
             if (gamepad2.x) {
-                arm.setPower(ARM_POWER);
+                arm.setPower(-ARM_POWER);
                 sleep(5000);
+
+            }
+
+            if (gamepad2.y) {
+                break;
             }
 
 
