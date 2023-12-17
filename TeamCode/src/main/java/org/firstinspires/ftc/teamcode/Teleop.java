@@ -34,6 +34,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name="Robot Teleop", group="Robot")
@@ -44,6 +45,7 @@ public class Teleop extends LinearOpMode {
     public static final double WRIST_POWER    =  0.4;
     public static final double CLAW_OPEN_POSITION    =  0;
     public static final double CLAW_CLOSED_POSITION    =  1;
+    ElapsedTime runtime;
 
 
     @Override
@@ -65,9 +67,17 @@ public class Teleop extends LinearOpMode {
         rightFront.setDirection(DcMotor.Direction.FORWARD);
         rightBack.setDirection(DcMotor.Direction.FORWARD);
 
+        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         wrist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+        wrist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        runtime = new ElapsedTime();
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData(">", "Robot Ready.  Press Play.");    //
@@ -96,20 +106,17 @@ public class Teleop extends LinearOpMode {
             rightBack.setPower(backRightPower);
 
             //brakes
-            leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
+            arm.setPower(-gamepad2.right_stick_y);
             //moves arm up and down
-            if (gamepad2.dpad_up) {
-                arm.setPower(ARM_POWER);
-            } else if (gamepad2.dpad_down) {
-                arm.setPower(-ARM_POWER);
-            } else {
-                arm.setPower(0.0);
-            }
+//            if (gamepad2.dpad_up) {
+//                arm.setPower(ARM_POWER);
+//            } else if (gamepad2.dpad_down) {
+//                arm.setPower(-ARM_POWER);
+//            } else {
+//                arm.setPower(0.0);
+//            }
 
 
 
@@ -128,14 +135,14 @@ public class Teleop extends LinearOpMode {
             }
 
 
-            wrist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
 
             //moves claws open and closed, open and closed claw values to be changed, servo to be programmed
-            if (gamepad2.a) { //open
+            if (gamepad2.b) { //open
                 leftClaw.setPosition(1);
                 rightClaw.setPosition(0);
-            } else if (gamepad2.b) { //closed
+            } else if (gamepad2.a) { //closed
                 leftClaw.setPosition(0);
                 rightClaw.setPosition(1);
             }
@@ -143,14 +150,19 @@ public class Teleop extends LinearOpMode {
 
             //5 second timer for hang
             if (gamepad2.x) {
-                arm.setPower(-ARM_POWER);
-                sleep(5000);
-
+                runtime.reset();
+                while(runtime.seconds()<5) {
+                    arm.setPower(-ARM_POWER);
+                    if (gamepad2.y) {
+                        break;
+                    }
+                }
             }
 
-            if (gamepad2.y) {
-                break;
-            }
+            telemetry.addData("Wrist Position", wrist.getCurrentPosition());
+            telemetry.update();
+
+
 
 
 
