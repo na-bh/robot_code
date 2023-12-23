@@ -49,6 +49,20 @@ public class Teleop extends LinearOpMode {
     ElapsedTime runtime;
 
 
+    public enum AWStates {
+        DOWN(82),
+        UP(-82);
+
+        int wristPosition;
+        private AWStates(int WRIST) {
+            wristPosition = WRIST;
+        }
+
+
+        public int getWristPosition() {
+            return wristPosition;
+        }
+    }
     @Override
     public void runOpMode() {
 
@@ -85,6 +99,9 @@ public class Teleop extends LinearOpMode {
         telemetry.addData(">", "Robot Ready.  Press Play.");    //
         telemetry.update();
 
+        wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        int switchVar = 0;
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
@@ -125,6 +142,7 @@ public class Teleop extends LinearOpMode {
 
 
 
+            /*
             if (gamepad2.right_stick_y > 0.1) {
                     wrist.setTargetPosition(500);
                     wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -148,8 +166,52 @@ public class Teleop extends LinearOpMode {
             }else {
                 wrist.setPower(0);
             }
-            
-            
+            */
+
+
+            if (gamepad2.a) {
+                wrist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                switchVar = 1;
+            } else if (gamepad2.b) {
+                wrist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                switchVar = 2;
+            } else if (gamepad2.y) {
+                wrist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                switchVar = 3;
+            }
+
+            switch(switchVar) {
+                case 1:
+                    wrist.setTargetPosition(AWStates.DOWN.wristPosition);
+                    wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    wrist.setPower(0.4);
+                    break;
+                case 2:
+                    wrist.setTargetPosition(AWStates.UP.wristPosition);
+                    wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    wrist.setPower(0.4);
+                    break;
+                case 3:
+                    if (gamepad2.right_stick_y > 0.1) {
+                        wrist.setTargetPosition(500);
+                        wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        wrist.setPower(0.5);
+                    } else if (gamepad2.right_stick_y < -0.1) {
+                        wrist.setTargetPosition(-500);
+                        wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        wrist.setPower(0.5);
+                    }
+                    else {
+                        wrist.setPower(0);
+                    }
+                    break;
+                case 0:
+                    break;
+
+            }
+
+
+
 
 
 
