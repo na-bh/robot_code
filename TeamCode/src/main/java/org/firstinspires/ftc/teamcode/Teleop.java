@@ -33,6 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -76,7 +77,8 @@ public class Teleop extends LinearOpMode {
         wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         wrist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
+        Gamepad currentGamepad2 = new Gamepad();
+        Gamepad previousGamepad2 = new Gamepad();
         runtime = new ElapsedTime();
 
         // Send telemetry message to signify robot waiting;
@@ -88,6 +90,8 @@ public class Teleop extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+
+
 
             double y = -gamepad1.left_stick_y;
             double x = gamepad1.left_stick_x * 1.1;
@@ -108,7 +112,7 @@ public class Teleop extends LinearOpMode {
             //brakes
 
 
-            arm.setPower(-gamepad2.right_stick_y);
+            arm.setPower(-gamepad2.left_stick_y);
             //moves arm up and down
 //            if (gamepad2.dpad_up) {
 //                arm.setPower(ARM_POWER);
@@ -121,28 +125,64 @@ public class Teleop extends LinearOpMode {
 
 
 
-            //moves wrist up and down
-            if (gamepad2.right_trigger > 0.1) {
+            if (gamepad2.right_stick_y > 0.1) {
+                    wrist.setTargetPosition(500);
+                    wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    wrist.setPower(0.5);
+            } else if (gamepad2.right_stick_y < -0.1) {
+                    wrist.setTargetPosition(-500);
+                    wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    wrist.setPower(0.5);
+            }
+//            if (Math.abs(gamepad2.right_stick_y) > 0.1) {
+//                wrist.setPower(gamepad2.right_stick_y/3);
+//            }
+            else if (gamepad2.a) {
+                wrist.setTargetPosition(82);
+                wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                wrist.setPower(0.4);
+            } else if (gamepad2.b) {
+                wrist.setTargetPosition(0);
+                wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                wrist.setPower(0.4);
+            }else {
+                wrist.setPower(0);
+            }
+            
+            
+
+
+
+
+            /*
+            if (gamepad2.dpad_up) {
                 wrist.setTargetPosition(500);
                 wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 wrist.setPower(0.5);
-            } else if (gamepad2.left_trigger > 0.1) {
+            }
+            if (gamepad2.dpad_down) {
                 wrist.setTargetPosition(-500);
                 wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 wrist.setPower(0.5);
-            } else {
-                wrist.setPower(0.0);
             }
 
+
+            if ((!gamepad2.dpad_up && !gamepad2.dpad_down) && (previousGamepad2.dpad_up || previousGamepad2.dpad_down)) {
+                wrist.setTargetPosition(-2000);
+                wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                wrist.setPower(0.5);
+            }
+
+             */
 
 
 
 
             //moves claws open and closed, open and closed claw values to be changed, servo to be programmed
-            if (gamepad2.b) { //open
+            if (gamepad2.right_trigger > 0.1) { //open
                 leftClaw.setPosition(1);
                 rightClaw.setPosition(0);
-            } else if (gamepad2.a) { //closed
+            } else if (gamepad2.left_trigger > 0.1) { //closed
                 leftClaw.setPosition(0);
                 rightClaw.setPosition(1);
             }
