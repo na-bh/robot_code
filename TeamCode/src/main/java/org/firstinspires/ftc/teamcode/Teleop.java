@@ -50,8 +50,8 @@ public class Teleop extends LinearOpMode {
 
 
     public enum AWStates {
-        DOWN(82),
-        UP(-82);
+        DOWN(0),
+        UP(-60);
 
         int wristPosition;
         private AWStates(int WRIST) {
@@ -129,7 +129,16 @@ public class Teleop extends LinearOpMode {
             //brakes
 
 
-            arm.setPower(-gamepad2.left_stick_y);
+
+
+            if (wrist.getCurrentPosition() > -1700) {
+                arm.setPower(-gamepad2.left_stick_y / 3);
+            } else {
+                arm.setPower(-gamepad2.left_stick_y);
+            }
+
+
+
             //moves arm up and down
 //            if (gamepad2.dpad_up) {
 //                arm.setPower(ARM_POWER);
@@ -189,7 +198,15 @@ public class Teleop extends LinearOpMode {
                 case 2:
                     wrist.setTargetPosition(AWStates.UP.wristPosition);
                     wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    wrist.setPower(0.4);
+                    wrist.setPower(0.6);
+                    sleep(1000);
+                    /*
+                    runtime.reset();
+                    while (runtime.seconds() < 0.5){
+                        arm.setPower(0.2);
+                    }
+                    */
+                    switchVar = 0;
                     break;
                 case 3:
                     if (gamepad2.right_stick_y > 0.1) {
@@ -206,6 +223,7 @@ public class Teleop extends LinearOpMode {
                     }
                     break;
                 case 0:
+                    wrist.setPower(0);
                     break;
 
             }
@@ -262,6 +280,8 @@ public class Teleop extends LinearOpMode {
             }
 
             telemetry.addData("Wrist Position", wrist.getCurrentPosition());
+            telemetry.addData("Arm Position", arm.getCurrentPosition());
+            telemetry.addData("Switch Case Variable: ", switchVar);
             telemetry.update();
 
 
