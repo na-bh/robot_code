@@ -50,8 +50,8 @@ public class Teleop extends LinearOpMode {
 
 
     public enum AWStates {
-        DOWN(0),
-        UP(-60);
+        DOWN(87),
+        UP(0);
 
         int wristPosition;
         private AWStates(int WRIST) {
@@ -271,8 +271,8 @@ public class Teleop extends LinearOpMode {
             //5 second timer for hang
             if (gamepad2.x) {
                 runtime.reset();
-                while(runtime.seconds()<5) {
-                    arm.setPower(-ARM_POWER);
+                while(runtime.seconds()<8) {
+                    arm.setPower(-0.7);
                     if (gamepad2.y) {
                         break;
                     }
