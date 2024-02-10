@@ -109,6 +109,20 @@ public class AutoWithEncoder extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
+            leftClaw.setPosition(0);
+            rightClaw.setPosition(1);
+            sleep(1000);
+
+            int target2 = 1000;
+            int startPose = arm.getCurrentPosition();
+            arm.setPower(0.5);
+            while (Math.abs(startPos-arm.getCurrentPosition()) < 1000) {
+
+            }
+            arm.setPower(0);
+
+
+
             startPos = leftBack.getCurrentPosition();
             leftFront.setPower(0.5);
             rightFront.setPower(0.5);
@@ -128,7 +142,7 @@ public class AutoWithEncoder extends LinearOpMode {
             rightFront.setPower(-0.5);
             leftBack.setPower(-0.5);
             rightBack.setPower(-0.5);
-            while (Math.abs(startPos-leftBack.getCurrentPosition()) < 500 ) {
+            while (Math.abs(startPos-leftBack.getCurrentPosition()) < 900 ) {
                 telemetry.addData("pos", leftBack.getCurrentPosition());
                 telemetry.update();
             }
@@ -179,7 +193,50 @@ public class AutoWithEncoder extends LinearOpMode {
             leftBack.setPower(0);
             rightBack.setPower(0);
 
-            
+            startPos = leftFront.getCurrentPosition();
+            leftFront.setPower(-0.5);
+            rightFront.setPower(0.5);
+            leftBack.setPower(0.5);
+            rightBack.setPower(-0.5);
+            while (Math.abs(startPos-leftFront.getCurrentPosition()) < 100) {
+                telemetry.addData("pos", leftFront.getCurrentPosition());
+                telemetry.update();
+            }
+            leftFront.setPower(0);
+            rightFront.setPower(0);
+            leftBack.setPower(0);
+            rightBack.setPower(0);
+
+            startPos = leftFront.getCurrentPosition();
+            leftFront.setPower(-0.5);
+            rightFront.setPower(0.5);
+            leftBack.setPower(-0.5);
+            rightBack.setPower(0.5);
+            while (Math.abs(startPos-leftFront.getCurrentPosition()) < 100) {
+                telemetry.addData("pos", leftFront.getCurrentPosition());
+                telemetry.update();
+            }
+            leftFront.setPower(0);
+            rightFront.setPower(0);
+            leftBack.setPower(0);
+            rightBack.setPower(0);
+
+
+             startPose = arm.getCurrentPosition();
+            arm.setPower(0.5);
+            while (Math.abs(startPos-arm.getCurrentPosition()) < 1000) {
+
+            }
+            arm.setPower(0);
+            sleep(3000);
+
+            leftClaw.setPosition(1);
+            rightClaw.setPosition(0);
+
+            sleep(2000);
+
+
+
 
 
 
