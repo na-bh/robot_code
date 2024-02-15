@@ -76,7 +76,7 @@ public class Teleop extends LinearOpMode {
         DcMotor arm  = hardwareMap.get(DcMotor.class, "arm");
         DcMotor wrist = hardwareMap.get(DcMotor.class, "wrist");
 
-       //one side is reversed
+        //one side is reversed
         leftFront.setDirection(DcMotor.Direction.REVERSE);
         leftBack.setDirection(DcMotor.Direction.REVERSE);
         rightFront.setDirection(DcMotor.Direction.FORWARD);
@@ -130,11 +130,14 @@ public class Teleop extends LinearOpMode {
 
 
 
-            if (arm.getCurrentPosition() > -1700) {
-                arm.setPower(-gamepad2.left_stick_y / 3);
+
+
+            if (-gamepad2.left_stick_y == 0) {
+                arm.setPower(0.05);
             } else {
-                arm.setPower(-gamepad2.left_stick_y);
+                arm.setPower(-gamepad2.left_stick_y / 2);
             }
+
 
 
 
@@ -311,6 +314,12 @@ public class Teleop extends LinearOpMode {
             } else if (gamepad2.left_trigger > 0.1) { //closed
                 leftClaw.setPosition(0);
                 rightClaw.setPosition(1);
+            }
+
+            if (gamepad2.right_bumper) {
+                rightClaw.setPosition(0.25);
+            } else if (gamepad2.left_bumper) {
+                leftClaw.setPosition(0.75);
             }
 
 
