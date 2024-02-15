@@ -35,6 +35,12 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.Pipelines.BlueElementPipeline;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+
 /*
  * This OpMode illustrates the concept of driving a path based on time.
  * The code is structured as a LinearOpMode
@@ -61,19 +67,47 @@ public class BlueAuto extends LinearOpMode {
 
     Gamepad gamepad1 = new Gamepad();
     Gamepad gamepad2 = new Gamepad();
-    DcMotor leftFront = hardwareMap.get(DcMotor.class, "leftf");
-    DcMotor rightFront = hardwareMap.get(DcMotor.class, "rightf");
-    DcMotor leftBack = hardwareMap.get(DcMotor.class, "leftb");
-    DcMotor rightBack = hardwareMap.get(DcMotor.class, "rightb");
-    Servo leftClaw = hardwareMap.get(Servo.class, "leftclaw");
-    Servo rightClaw = hardwareMap.get(Servo.class, "rightclaw");
-    DcMotor arm = hardwareMap.get(DcMotor.class, "arm");
-    DcMotor wrist = hardwareMap.get(DcMotor.class, "wrist");
+    DcMotor leftFront;
+    DcMotor rightFront;
+    DcMotor leftBack;
+    DcMotor rightBack;
+    Servo leftClaw;
+    Servo rightClaw;
+    DcMotor arm;
+    DcMotor wrist;
 
 
 
     @Override
     public void runOpMode() {
+         leftFront = hardwareMap.get(DcMotor.class, "leftf");
+         rightFront = hardwareMap.get(DcMotor.class, "rightf");
+         leftBack = hardwareMap.get(DcMotor.class, "leftb");
+         rightBack = hardwareMap.get(DcMotor.class, "rightb");
+         leftClaw = hardwareMap.get(Servo.class, "leftclaw");
+         rightClaw = hardwareMap.get(Servo.class, "rightclaw");
+         arm = hardwareMap.get(DcMotor.class, "arm");
+         wrist = hardwareMap.get(DcMotor.class, "wrist");
+        Position element = Position.LEFT;
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        WebcamName webcamName = hardwareMap.get(WebcamName.class, "Laser");
+        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
+        BlueElementPipeline blueElementPipeline = new BlueElementPipeline();
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                // Usually this is where you'll want to start streaming from the camera (see section 4)
+            }
+            @Override
+            public void onError(int errorCode)
+            {
+                /*
+                 * This will be called if the camera could not be opened
+                 */
+            }
+        });
 
 
         //one side is reversed
@@ -104,6 +138,27 @@ public class BlueAuto extends LinearOpMode {
         leftClaw.setPosition(0);
         rightClaw.setPosition(1);
 
+
+        camera.startStreaming(320, 240, OpenCvCameraRotation.SIDEWAYS_RIGHT);
+        camera.setPipeline(blueElementPipeline);
+        while (!opModeIsActive()) {
+            double position = blueElementPipeline.positionx;
+            if (position < 100) {
+                element = Position.CENTER;
+            }
+            else if (position < 200) {
+                element = Position.RIGHT;
+            }
+            else {
+                element = Position.LEFT;
+            }
+            telemetry.addData("element", element);
+            telemetry.addData("x", position);
+            telemetry.addData("area", blueElementPipeline.area);
+            telemetry.update();
+
+        }
+
         arm.setPower(0.4);
         runtime.reset();
         while (opModeIsActive() && (runtime.seconds() < 1.5)) {
@@ -119,17 +174,22 @@ public class BlueAuto extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        if (gamepad1.a) {
-            left();
-        } else if (gamepad1.x) {
-            right();
-        } else if (gamepad1.b) {
-            center();
+        switch (element) {
+            case LEFT:
+                left();
+                break;
+            case CENTER:
+                center();
+                break;
+            case RIGHT:
+                right();
+                break;
         }
-
-
-
-
+    }
+    enum Position {
+        LEFT,
+        CENTER,
+        RIGHT;
     }
     public void left() {
         int startPos;
@@ -535,7 +595,7 @@ public class BlueAuto extends LinearOpMode {
         rightFront.setPower(0.5);
         leftBack.setPower(0.5);
         rightBack.setPower(0.5);
-        while (Math.abs(startPos-leftBack.getCurrentPosition()) < target ) {
+        while (Math.abs(startPos-leftBack.getCurrentPosition()) < 1500) {
             telemetry.addData("pos", leftBack.getCurrentPosition());
             telemetry.update();
         }
