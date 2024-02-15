@@ -89,6 +89,7 @@ public class Teleop extends LinearOpMode {
 
         wrist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        wrist.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         wrist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         Gamepad currentGamepad2 = new Gamepad();
@@ -98,8 +99,6 @@ public class Teleop extends LinearOpMode {
         // Send telemetry message to signify robot waiting;
         telemetry.addData(">", "Robot Ready.  Press Play.");    //
         telemetry.update();
-
-        wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         int switchVar = 0;
         // Wait for the game to start (driver presses PLAY)
@@ -131,7 +130,7 @@ public class Teleop extends LinearOpMode {
 
 
 
-            if (wrist.getCurrentPosition() > -1700) {
+            if (arm.getCurrentPosition() > -1700) {
                 arm.setPower(-gamepad2.left_stick_y / 3);
             } else {
                 arm.setPower(-gamepad2.left_stick_y);
@@ -148,6 +147,15 @@ public class Teleop extends LinearOpMode {
 //                arm.setPower(0.0);
 //            }
 
+            wrist.setPower(gamepad2.right_stick_y);
+
+            if (gamepad2.a) {
+                telemetry.addData("A Pressed: ", "yes");
+                wrist.setPower(0.6);
+            } else if (gamepad2.b) {
+                telemetry.addData("B Pressed: ", "yes");
+                wrist.setPower(-0.6);
+            }
 
 
 
@@ -178,6 +186,7 @@ public class Teleop extends LinearOpMode {
             */
 
 
+            /*
             if (gamepad2.a) {
                 wrist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 switchVar = 1;
@@ -187,25 +196,62 @@ public class Teleop extends LinearOpMode {
             } else if (gamepad2.y) {
                 wrist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 switchVar = 3;
+            } else {
+                wrist.setPower(0);
+                switchVar = 0;
             }
 
             switch(switchVar) {
                 case 1:
-                    wrist.setTargetPosition(AWStates.DOWN.wristPosition);
+
+
+                    int startPos = wrist.getCurrentPosition();
+                    wrist.setPower(0.4);
+                    while (Math.abs(startPos - wrist.getCurrentPosition()) < 68) {
+                        telemetry.addData("pos", wrist.getCurrentPosition());
+                        telemetry.update();
+                    }
+                    wrist.setPower(0);
+
+                    int startPos = wrist.getCurrentPosition();
+                    wrist.setPower(0.4);
+                    while (Math.abs(startPos - wrist.getCurrentPosition()) < 50) {
+                        telemetry.addData("pos", wrist.getCurrentPosition());
+                        telemetry.update();
+                    }
+                    wrist.setPower(0);
+*/
+
+
+                    /*
+                    wrist.setTargetPosition(50);
                     wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     wrist.setPower(0.4);
+
+
                     break;
                 case 2:
+                    int startPos2 = wrist.getCurrentPosition();
+                    wrist.setPower(-0.4);
+                    while (Math.abs(startPos2 - wrist.getCurrentPosition()) < 50) {
+                        telemetry.addData("pos", wrist.getCurrentPosition());
+                        telemetry.update();
+                    }
+                    wrist.setPower(0);
+
+                    /*
                     wrist.setTargetPosition(AWStates.UP.wristPosition);
                     wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     wrist.setPower(0.6);
                     sleep(1000);
+
+                     */
                     /*
                     runtime.reset();
                     while (runtime.seconds() < 0.5){
                         arm.setPower(0.2);
                     }
-                    */
+
                     switchVar = 0;
                     break;
                 case 3:
@@ -227,7 +273,7 @@ public class Teleop extends LinearOpMode {
                     break;
 
             }
-
+ */
 
 
 
@@ -260,8 +306,8 @@ public class Teleop extends LinearOpMode {
 
             //moves claws open and closed, open and closed claw values to be changed, servo to be programmed
             if (gamepad2.right_trigger > 0.1) { //open
-                leftClaw.setPosition(1);
-                rightClaw.setPosition(0);
+                leftClaw.setPosition(0.75);
+                rightClaw.setPosition(0.25);
             } else if (gamepad2.left_trigger > 0.1) { //closed
                 leftClaw.setPosition(0);
                 rightClaw.setPosition(1);
