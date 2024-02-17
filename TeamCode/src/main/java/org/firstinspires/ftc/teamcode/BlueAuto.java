@@ -67,30 +67,24 @@ public class BlueAuto extends LinearOpMode {
 
     Gamepad gamepad1 = new Gamepad();
     Gamepad gamepad2 = new Gamepad();
-    DcMotor leftFront;
-    DcMotor rightFront;
-    DcMotor leftBack;
-    DcMotor rightBack;
-    Servo leftClaw;
-    Servo rightClaw;
-    DcMotor arm;
+    DcMotor leftFront ;
+    DcMotor rightFront ;
+    DcMotor leftBack ;
+    DcMotor rightBack ;
+    Servo leftClaw ;
+    Servo rightClaw ;
+    DcMotor arm ;
     DcMotor wrist;
-
 
 
     @Override
     public void runOpMode() {
-         leftFront = hardwareMap.get(DcMotor.class, "leftf");
-         rightFront = hardwareMap.get(DcMotor.class, "rightf");
-         leftBack = hardwareMap.get(DcMotor.class, "leftb");
-         rightBack = hardwareMap.get(DcMotor.class, "rightb");
-         leftClaw = hardwareMap.get(Servo.class, "leftclaw");
-         rightClaw = hardwareMap.get(Servo.class, "rightclaw");
-         arm = hardwareMap.get(DcMotor.class, "arm");
-         wrist = hardwareMap.get(DcMotor.class, "wrist");
+
         Position element = Position.LEFT;
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         WebcamName webcamName = hardwareMap.get(WebcamName.class, "Laser");
+
+
         OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
         BlueElementPipeline blueElementPipeline = new BlueElementPipeline();
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
@@ -98,6 +92,7 @@ public class BlueAuto extends LinearOpMode {
             @Override
             public void onOpened()
             {
+                camera.startStreaming(320, 240, OpenCvCameraRotation.SIDEWAYS_RIGHT);
                 // Usually this is where you'll want to start streaming from the camera (see section 4)
             }
             @Override
@@ -106,8 +101,18 @@ public class BlueAuto extends LinearOpMode {
                 /*
                  * This will be called if the camera could not be opened
                  */
+
             }
         });
+
+         leftFront = hardwareMap.get(DcMotor.class, "leftf");
+         rightFront = hardwareMap.get(DcMotor.class, "rightf");
+         leftBack = hardwareMap.get(DcMotor.class, "leftb");
+         rightBack = hardwareMap.get(DcMotor.class, "rightb");
+         leftClaw = hardwareMap.get(Servo.class, "leftclaw");
+         rightClaw = hardwareMap.get(Servo.class, "rightclaw");
+         arm = hardwareMap.get(DcMotor.class, "arm");
+         wrist = hardwareMap.get(DcMotor.class, "wrist");
 
 
         //one side is reversed
@@ -139,33 +144,30 @@ public class BlueAuto extends LinearOpMode {
         rightClaw.setPosition(1);
 
 
-        camera.startStreaming(320, 240, OpenCvCameraRotation.SIDEWAYS_RIGHT);
+
         camera.setPipeline(blueElementPipeline);
         while (!opModeIsActive()) {
             double position = blueElementPipeline.positionx;
-            if (position < 100) {
+            double positiony = blueElementPipeline.positiony;
+            if (position > 100 && position < 200) {
                 element = Position.CENTER;
             }
-            else if (position < 200) {
+            else if (position < 50 && position > 10 && positiony > 50) {
                 element = Position.RIGHT;
+                break;
             }
             else {
                 element = Position.LEFT;
             }
             telemetry.addData("element", element);
             telemetry.addData("x", position);
+            telemetry.addData("y", positiony);
             telemetry.addData("area", blueElementPipeline.area);
             telemetry.update();
 
         }
 
-        arm.setPower(0.4);
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 1.5)) {
-            telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
-            telemetry.update();
-        }
-        arm.setPower(0);
+
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Status", "Ready to run");    //
@@ -176,582 +178,550 @@ public class BlueAuto extends LinearOpMode {
 
         switch (element) {
             case LEFT:
-                left();
+                startPos = arm.getCurrentPosition();
+                arm.setPower(0.5);
+                while (Math.abs(startPos-arm.getCurrentPosition()) < 1500) {
+                    telemetry.addData("pos", arm.getCurrentPosition());
+                    telemetry.update();
+                }
+                arm.setPower(0);
+
+                // Straight
+                startPos = leftBack.getCurrentPosition();
+                leftFront.setPower(0.5);
+                rightFront.setPower(0.5);
+                leftBack.setPower(0.5);
+                rightBack.setPower(0.5);
+                while (Math.abs(startPos - leftBack.getCurrentPosition()) < 1300) {
+                    telemetry.addData("pos", leftBack.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+
+                // Turn
+                startPos = leftBack.getCurrentPosition();
+                leftFront.setPower(-0.5);
+                rightFront.setPower(0.5);
+                leftBack.setPower(-0.5);
+                rightBack.setPower(0.5);
+                while (Math.abs(startPos - leftBack.getCurrentPosition()) < 600) {
+                    telemetry.addData("pos", leftBack.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                sleep(500);
+
+                // Forward A Little Bit To Push The Pixel Onto Spike (Tape)
+                startPos = leftBack.getCurrentPosition();
+                leftFront.setPower(0.5);
+                rightFront.setPower(0.5);
+                leftBack.setPower(0.5);
+                rightBack.setPower(0.5);
+                while (Math.abs(startPos - leftBack.getCurrentPosition()) < 250) {
+                    telemetry.addData("pos", leftBack.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                sleep(1000);
+
+                // Back A Little To Get Away From Spike
+                startPos = leftBack.getCurrentPosition();
+                leftFront.setPower(-0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(-0.5);
+                rightBack.setPower(-0.5);
+                while (Math.abs(startPos - leftBack.getCurrentPosition()) < 250) {
+                    telemetry.addData("pos", leftBack.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                sleep(1000);
+
+                // Turn
+                startPos = leftBack.getCurrentPosition();
+                leftFront.setPower(0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(0.5);
+                rightBack.setPower(-0.5);
+                while (Math.abs(startPos - leftBack.getCurrentPosition()) < 750) {
+                    telemetry.addData("pos", leftBack.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                sleep(1000);
+
+                // Back
+                startPos = leftFront.getCurrentPosition();
+                leftFront.setPower(-0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(-0.5);
+                rightBack.setPower(-0.5);
+                while (Math.abs(startPos - leftFront.getCurrentPosition()) < 500) {
+                    telemetry.addData("pos", leftFront.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                sleep(1000);
+
+                // Turn
+                startPos = leftBack.getCurrentPosition();
+                leftFront.setPower(0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(0.5);
+                rightBack.setPower(-0.5);
+                while (Math.abs(startPos - leftBack.getCurrentPosition()) < 700) {
+                    telemetry.addData("pos", leftBack.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                // Forward
+                startPos = leftFront.getCurrentPosition();
+                leftFront.setPower(-0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(-0.5);
+                rightBack.setPower(-0.5);
+                while (Math.abs(startPos - leftFront.getCurrentPosition()) < 1800) {
+                    telemetry.addData("pos", leftFront.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                sleep(1000);
+
+                // Strafe
+                startPos = rightFront.getCurrentPosition();
+                leftFront.setPower(-0.5);
+                rightFront.setPower(0.5);
+                leftBack.setPower(0.5);
+                rightBack.setPower(-0.5);
+                while (Math.abs(startPos - rightFront.getCurrentPosition()) < 200) {
+                    telemetry.addData("pos", rightFront.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+
+
+
+
+                // Raise Arm
+                startPos = arm.getCurrentPosition();
+                arm.setPower(0.5);
+                while (Math.abs(startPos - arm.getCurrentPosition()) < 350) {
+                    telemetry.addData("pos", arm.getCurrentPosition());
+                    telemetry.update();
+                }
+                arm.setPower(0);
+                sleep(1000);
+
+
+                // Drop Yellow Pixel
+                leftClaw.setPosition(1);
+                rightClaw.setPosition(0);
+
+                sleep(1000);
+
+                // Lower Arm
+                startPos = arm.getCurrentPosition();
+                arm.setPower(-0.5);
+                while (Math.abs(startPos - arm.getCurrentPosition()) < 2500) {
+                    telemetry.addData("pos", arm.getCurrentPosition());
+                    telemetry.update();
+                }
+                arm.setPower(0);
+
+                // Back
+                startPos = leftFront.getCurrentPosition();
+                leftFront.setPower(0.5);
+                rightFront.setPower(0.5);
+                leftBack.setPower(0.5);
+                rightBack.setPower(0.5);
+                while (Math.abs(startPos - leftFront.getCurrentPosition()) < 200) {
+                    telemetry.addData("pos", leftFront.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                sleep(1000);
+
+
+                // Strafe
+                startPos = leftFront.getCurrentPosition();
+                leftFront.setPower(0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(-0.5);
+                rightBack.setPower(0.5);
+                while (Math.abs(startPos - leftFront.getCurrentPosition()) < 1400) {
+                    telemetry.addData("pos", leftFront.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                // Forward To Park
+                startPos = leftFront.getCurrentPosition();
+                leftFront.setPower(-0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(-0.5);
+                rightBack.setPower(-0.5);
+                while (Math.abs(startPos - leftFront.getCurrentPosition()) < 400) {
+                    telemetry.addData("pos", leftFront.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
                 break;
             case CENTER:
-                center();
+                startPos = arm.getCurrentPosition();
+                arm.setPower(0.5);
+                while (Math.abs(startPos-arm.getCurrentPosition()) < 1300) {
+                    telemetry.addData("pos", arm.getCurrentPosition());
+                    telemetry.update();
+                }
+                arm.setPower(0);
+                startPos = leftBack.getCurrentPosition();
+                leftFront.setPower(0.5);
+                rightFront.setPower(0.5);
+                leftBack.setPower(0.5);
+                rightBack.setPower(0.5);
+                while (Math.abs(startPos-leftBack.getCurrentPosition()) < 1500) {
+                    telemetry.addData("pos", leftBack.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+                sleep(300);
+
+                startPos = leftBack.getCurrentPosition();
+                leftFront.setPower(-0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(-0.5);
+                rightBack.setPower(-0.5);
+                while (Math.abs(startPos-leftBack.getCurrentPosition()) < 350 ) {
+                    telemetry.addData("pos", leftBack.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+                sleep(300);
+
+
+
+
+                startPos = leftFront.getCurrentPosition();
+                leftFront.setPower(0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(0.5);
+                rightBack.setPower(-0.5);
+                while (Math.abs(startPos-leftFront.getCurrentPosition()) < 800) {
+                    telemetry.addData("pos", leftFront.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+                sleep(300);
+
+
+
+                startPos = leftFront.getCurrentPosition();
+                leftFront.setPower(-0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(-0.5);
+                rightBack.setPower(-0.5);
+                while (Math.abs(startPos-leftFront.getCurrentPosition()) < 1500) {
+                    telemetry.addData("pos", leftFront.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+                sleep(300);
+
+
+                startPos = leftFront.getCurrentPosition();
+                leftFront.setPower(-0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(-0.5);
+                rightBack.setPower(-0.5);
+                while (Math.abs(startPos-leftFront.getCurrentPosition()) < 150) {
+                    telemetry.addData("pos", leftFront.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+                sleep(200);
+
+                startPos = arm.getCurrentPosition();
+                arm.setPower(0.5);
+                while (Math.abs(startPos-arm.getCurrentPosition()) < 1500) {
+                    telemetry.addData("pos", arm.getCurrentPosition());
+                    telemetry.update();
+                }
+                arm.setPower(0);
+                //    sleep(3000);
+
+                leftClaw.setPosition(1);
+                rightClaw.setPosition(0);
+
+                sleep(2000);
+
+                startPos = arm.getCurrentPosition();
+                arm.setPower(-0.5);
+                while (Math.abs(startPos-arm.getCurrentPosition()) < 2500) {
+                    telemetry.addData("pos", arm.getCurrentPosition());
+                    telemetry.update();
+                }
+                arm.setPower(0);
+
+                startPos = leftFront.getCurrentPosition();
+                leftFront.setPower(0.5);
+                rightFront.setPower(0.5);
+                leftBack.setPower(0.5);
+                rightBack.setPower(0.5);
+                while (Math.abs(startPos-leftFront.getCurrentPosition()) < 100) {
+                    telemetry.addData("pos", leftFront.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                startPos = leftFront.getCurrentPosition();
+                leftFront.setPower(0.5);
+                rightFront.setPower(0.5);
+                leftBack.setPower(0.5);
+                rightBack.setPower(0.5);
+                while (Math.abs(startPos-leftFront.getCurrentPosition()) < 100) {
+                    telemetry.addData("pos", leftFront.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                startPos = rightFront.getCurrentPosition();
+                leftFront.setPower(0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(-0.5);
+                rightBack.setPower(0.5);
+                while (Math.abs(startPos-rightFront.getCurrentPosition()) < 800) {
+                    telemetry.addData("pos", rightFront.getCurrentPosition());
+                    telemetry.update();
+                }
+
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                startPos = leftFront.getCurrentPosition();
+                leftFront.setPower(-0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(-0.5);
+                rightBack.setPower(-0.5);
+                while (Math.abs(startPos-leftFront.getCurrentPosition()) < 400) {
+                    telemetry.addData("pos", leftFront.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                leftClaw.setPosition(0);
+                rightClaw.setPosition(1);
+                sleep(100);
                 break;
             case RIGHT:
-                right();
+                 startPos = arm.getCurrentPosition();
+                arm.setPower(0.5);
+                while (Math.abs(startPos-arm.getCurrentPosition()) < 1300) {
+                    telemetry.addData("pos", arm.getCurrentPosition());
+                    telemetry.update();
+                }
+                arm.setPower(0);
+                startPos = leftBack.getCurrentPosition();
+                leftFront.setPower(0.5);
+                rightFront.setPower(0.5);
+                leftBack.setPower(0.5);
+                rightBack.setPower(0.5);
+                while (Math.abs(startPos - leftBack.getCurrentPosition()) < 1100) {
+                    telemetry.addData("pos", leftBack.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+
+                // Turn
+                startPos = leftBack.getCurrentPosition();
+                leftFront.setPower(0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(0.5);
+                rightBack.setPower(-0.5);
+                while (Math.abs(startPos - leftBack.getCurrentPosition()) < 900) {
+                    telemetry.addData("pos", leftBack.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                // Forward A Little Bit To Push The Pixel Onto Spike (Tape)
+                startPos = leftBack.getCurrentPosition();
+                leftFront.setPower(0.5);
+                rightFront.setPower(0.5);
+                leftBack.setPower(0.5);
+                rightBack.setPower(0.5);
+                while (Math.abs(startPos - leftBack.getCurrentPosition()) < 300) {
+                    telemetry.addData("pos", leftBack.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                sleep(1000);
+
+                // Go To Backdrop
+                startPos = leftFront.getCurrentPosition();
+                leftFront.setPower(-0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(-0.5);
+                rightBack.setPower(-0.5);
+                while (Math.abs(startPos - leftFront.getCurrentPosition()) < 2050) {
+                    telemetry.addData("pos", leftFront.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                // Raise Arm
+                startPos = arm.getCurrentPosition();
+                arm.setPower(0.5);
+                while (Math.abs(startPos - arm.getCurrentPosition()) < 1500) {
+                    telemetry.addData("pos", arm.getCurrentPosition());
+                    telemetry.update();
+                }
+                arm.setPower(0);
+
+                // Drop Yellow Pixel
+                leftClaw.setPosition(1);
+                rightClaw.setPosition(0);
+
+                sleep(1000);
+
+                // Raise Arm
+                startPos = arm.getCurrentPosition();
+                arm.setPower(-0.5);
+                while (Math.abs(startPos - arm.getCurrentPosition()) < 1800) {
+                    telemetry.addData("pos", arm.getCurrentPosition());
+                    telemetry.update();
+                }
+                arm.setPower(0);
+
+                sleep(500);
+                // strafe
+                startPos = leftFront.getCurrentPosition();
+                leftFront.setPower(0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(-0.5);
+                rightBack.setPower(0.5);
+                while (Math.abs(startPos - leftFront.getCurrentPosition()) < 1200) {
+                    telemetry.addData("pos", leftFront.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+
+                // Forward To Park
+                startPos = leftFront.getCurrentPosition();
+                leftFront.setPower(-0.5);
+                rightFront.setPower(-0.5);
+                leftBack.setPower(-0.5);
+                rightBack.setPower(-0.5);
+                while (Math.abs(startPos - leftFront.getCurrentPosition()) < 300) {
+                    telemetry.addData("pos", leftFront.getCurrentPosition());
+                    telemetry.update();
+                }
+                leftFront.setPower(0);
+                rightFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
                 break;
         }
     }
+
     enum Position {
         LEFT,
         CENTER,
         RIGHT;
     }
-    public void left() {
-        int startPos;
-        // Straight
-        startPos = leftBack.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(0.5);
-        leftBack.setPower(0.5);
-        rightBack.setPower(0.5);
-        while (Math.abs(startPos - leftBack.getCurrentPosition()) < 1300) {
-            telemetry.addData("pos", leftBack.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-
-        // Turn
-        startPos = leftBack.getCurrentPosition();
-        leftFront.setPower(-0.5);
-        rightFront.setPower(0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(0.5);
-        while (Math.abs(startPos - leftBack.getCurrentPosition()) < 600) {
-            telemetry.addData("pos", leftBack.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        sleep(500);
-
-        // Forward A Little Bit To Push The Pixel Onto Spike (Tape)
-        startPos = leftBack.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(0.5);
-        leftBack.setPower(0.5);
-        rightBack.setPower(0.5);
-        while (Math.abs(startPos - leftBack.getCurrentPosition()) < 300) {
-            telemetry.addData("pos", leftBack.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        sleep(1000);
-
-        // Back A Little To Get Away From Spike
-        startPos = leftBack.getCurrentPosition();
-        leftFront.setPower(-0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos - leftBack.getCurrentPosition()) < 300) {
-            telemetry.addData("pos", leftBack.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        sleep(1000);
-
-        // Turn
-        startPos = leftBack.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos - leftBack.getCurrentPosition()) < 750) {
-            telemetry.addData("pos", leftBack.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        sleep(1000);
-
-        // Back
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(-0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos - leftFront.getCurrentPosition()) < 600) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        sleep(1000);
-
-        // Turn
-        startPos = leftBack.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos - leftBack.getCurrentPosition()) < 700) {
-            telemetry.addData("pos", leftBack.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        // Forward
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(-0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos - leftFront.getCurrentPosition()) < 1200) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        sleep(1000);
-
-        // Turn
-        startPos = leftBack.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos - leftBack.getCurrentPosition()) < 750) {
-            telemetry.addData("pos", leftBack.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        // Forward
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(-0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos - leftFront.getCurrentPosition()) < 700) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        sleep(1000);
-
-        // Turn
-        startPos = leftBack.getCurrentPosition();
-        leftFront.setPower(-0.5);
-        rightFront.setPower(0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(0.5);
-        while (Math.abs(startPos - leftBack.getCurrentPosition()) < 750) {
-            telemetry.addData("pos", leftBack.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        // Forward
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(-0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos - leftFront.getCurrentPosition()) < 800) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-        sleep(1000);
-
-
-        // Raise Arm
-        startPos = arm.getCurrentPosition();
-        arm.setPower(0.5);
-        while (Math.abs(startPos - arm.getCurrentPosition()) < 2500) {
-            telemetry.addData("pos", arm.getCurrentPosition());
-            telemetry.update();
-        }
-        arm.setPower(0);
-        sleep(1000);
-
-
-        // Drop Yellow Pixel
-        leftClaw.setPosition(1);
-        rightClaw.setPosition(0);
-
-        sleep(1000);
-
-        // Lower Arm
-        startPos = arm.getCurrentPosition();
-        arm.setPower(-0.5);
-        while (Math.abs(startPos - arm.getCurrentPosition()) < 2500) {
-            telemetry.addData("pos", arm.getCurrentPosition());
-            telemetry.update();
-        }
-        arm.setPower(0);
-
-        // Back
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(0.5);
-        leftBack.setPower(0.5);
-        rightBack.setPower(0.5);
-        while (Math.abs(startPos - leftFront.getCurrentPosition()) < 200) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        sleep(1000);
 
 
 
-        sleep(1000);
-        // Strafe
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(0.5);
-        while (Math.abs(startPos - leftFront.getCurrentPosition()) < 1400) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        // Forward To Park
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(-0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos - leftFront.getCurrentPosition()) < 400) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
     }
 
-    public void right() {
-        int startPos;
-        // Straight
-        startPos = leftBack.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(0.5);
-        leftBack.setPower(0.5);
-        rightBack.setPower(0.5);
-        while (Math.abs(startPos - leftBack.getCurrentPosition()) < 1100) {
-            telemetry.addData("pos", leftBack.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-
-        // Turn
-        startPos = leftBack.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos - leftBack.getCurrentPosition()) < 900) {
-            telemetry.addData("pos", leftBack.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        // Forward A Little Bit To Push The Pixel Onto Spike (Tape)
-        startPos = leftBack.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(0.5);
-        leftBack.setPower(0.5);
-        rightBack.setPower(0.5);
-        while (Math.abs(startPos - leftBack.getCurrentPosition()) < 300) {
-            telemetry.addData("pos", leftBack.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        sleep(1000);
-
-        // Go To Backdrop
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(-0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos - leftFront.getCurrentPosition()) < 2050) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        // Raise Arm
-        startPos = arm.getCurrentPosition();
-        arm.setPower(0.5);
-        while (Math.abs(startPos - arm.getCurrentPosition()) < 1800) {
-            telemetry.addData("pos", arm.getCurrentPosition());
-            telemetry.update();
-        }
-        arm.setPower(0);
-
-        // Drop Yellow Pixel
-        leftClaw.setPosition(1);
-        rightClaw.setPosition(0);
-
-        sleep(1000);
-
-        // Raise Arm
-        startPos = arm.getCurrentPosition();
-        arm.setPower(-0.5);
-        while (Math.abs(startPos - arm.getCurrentPosition()) < 1800) {
-            telemetry.addData("pos", arm.getCurrentPosition());
-            telemetry.update();
-        }
-        arm.setPower(0);
-
-        sleep(500);
-        // Shafe
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(0.5);
-        while (Math.abs(startPos - leftFront.getCurrentPosition()) < 1200) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        // Forward To Park
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(-0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos - leftFront.getCurrentPosition()) < 300) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-    }
-
-    public void center() {
-        int startPos;
-        startPos = leftBack.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(0.5);
-        leftBack.setPower(0.5);
-        rightBack.setPower(0.5);
-        while (Math.abs(startPos-leftBack.getCurrentPosition()) < 1500) {
-            telemetry.addData("pos", leftBack.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-        sleep(300);
-
-        startPos = leftBack.getCurrentPosition();
-        leftFront.setPower(-0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos-leftBack.getCurrentPosition()) < 350 ) {
-            telemetry.addData("pos", leftBack.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-        sleep(300);
 
 
 
-
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos-leftFront.getCurrentPosition()) < 800) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-        sleep(300);
-
-
-
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(-0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos-leftFront.getCurrentPosition()) < 1500) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-        sleep(300);
-
-
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(-0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos-leftFront.getCurrentPosition()) < 100) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-        sleep(200);
-
-        startPos = arm.getCurrentPosition();
-        arm.setPower(0.5);
-        while (Math.abs(startPos-arm.getCurrentPosition()) < 2500) {
-            telemetry.addData("pos", arm.getCurrentPosition());
-            telemetry.update();
-        }
-        arm.setPower(0);
-        //    sleep(3000);
-
-        leftClaw.setPosition(1);
-        rightClaw.setPosition(0);
-
-        sleep(2000);
-
-        startPos = arm.getCurrentPosition();
-        arm.setPower(-0.5);
-        while (Math.abs(startPos-arm.getCurrentPosition()) < 2500) {
-            telemetry.addData("pos", arm.getCurrentPosition());
-            telemetry.update();
-        }
-        arm.setPower(0);
-
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(0.5);
-        leftBack.setPower(0.5);
-        rightBack.setPower(0.5);
-        while (Math.abs(startPos-leftFront.getCurrentPosition()) < 100) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(0.5);
-        leftBack.setPower(0.5);
-        rightBack.setPower(0.5);
-        while (Math.abs(startPos-leftFront.getCurrentPosition()) < 100) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        startPos = rightFront.getCurrentPosition();
-        leftFront.setPower(0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(0.5);
-        while (Math.abs(startPos-rightFront.getCurrentPosition()) < 800) {
-            telemetry.addData("pos", rightFront.getCurrentPosition());
-            telemetry.update();
-        }
-
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        startPos = leftFront.getCurrentPosition();
-        leftFront.setPower(-0.5);
-        rightFront.setPower(-0.5);
-        leftBack.setPower(-0.5);
-        rightBack.setPower(-0.5);
-        while (Math.abs(startPos-leftFront.getCurrentPosition()) < 400) {
-            telemetry.addData("pos", leftFront.getCurrentPosition());
-            telemetry.update();
-        }
-        leftFront.setPower(0);
-        rightFront.setPower(0);
-        leftBack.setPower(0);
-        rightBack.setPower(0);
-
-        leftClaw.setPosition(0);
-        rightClaw.setPosition(1);
-        sleep(100);
-    }
-}
