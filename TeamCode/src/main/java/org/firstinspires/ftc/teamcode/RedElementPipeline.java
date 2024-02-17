@@ -79,8 +79,8 @@ public class RedElementPipeline extends OpenCvPipeline {
         //return gFrame;
         gFrame.release();
         hsvFrame.release();
-        input.release();
-        return thresholdedFrame;
+        thresholdedFrame.release();
+        return input;
         //return input;
 
     }
