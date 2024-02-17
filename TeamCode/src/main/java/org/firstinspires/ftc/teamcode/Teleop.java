@@ -75,6 +75,7 @@ public class Teleop extends LinearOpMode {
         Servo rightClaw = hardwareMap.get(Servo.class, "rightclaw");
         DcMotor arm  = hardwareMap.get(DcMotor.class, "arm");
         DcMotor wrist = hardwareMap.get(DcMotor.class, "wrist");
+        Servo dronelauncher = hardwareMap.get(Servo.class, "dronelauncher");
 
         //one side is reversed
         leftFront.setDirection(DcMotor.Direction.REVERSE);
@@ -128,7 +129,11 @@ public class Teleop extends LinearOpMode {
             //brakes
 
 
-
+            if (gamepad1.b) {
+                dronelauncher.setPosition(0);
+                sleep(300);
+                dronelauncher.setPosition(0.5);
+            }
 
 
 
